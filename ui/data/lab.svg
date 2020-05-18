@@ -1,0 +1,26 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="480" height="240" viewBox="0 0 480 240">
+    <defs>
+        <path id="erlenmeyer-flask" d="M 226,90 L 254,90 M 230,90 L 230,120 L 190,190 L 290,190 L 250,120 L 250,90 Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="6" />
+        <path id="l" d="M 100,60 L 100,180 L 160,180" fill="none" />
+        <path id="a" d="M 190,180 L 240,60 L 290,180" fill="none" />
+        <path id="b" d="M 320,60 L 342,60 A 30 30 0 0 1 342 120 L 320,120 L 350,120 A 30 30 0 0 1 350 180 L 320,180 L 320,60" fill="none" />
+        <g id="text" stroke="red" stroke-linecap="round" stroke-linejoin="round" stroke-width="24">
+            <use xlink:href="#l" />
+            <use xlink:href="#a" />
+            <use xlink:href="#b" />
+        </g>
+    </defs>
+    <mask id="erlenmeyer-flask-mask" maskUnits="userSpaceOnUse">
+        <rect x="0" y="0" width="480" height="240" fill="white" />
+        <use xlink:href="#erlenmeyer-flask" fill="black" stroke="black" />
+    </mask>
+    <!-- Guide
+    <g fill="none" stroke="grey" stroke-width="1">
+        <polyline points="90,0 90,240" />
+        <polyline points="240,0 240,240" />
+        <polyline points="390,0 390,240" />
+        <polyline points="0,120 480,120" />
+    </g> -->
+    <use xlink:href="#text" mask="url(#erlenmeyer-flask-mask)" />
+</svg>
