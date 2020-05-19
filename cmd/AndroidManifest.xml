@@ -19,17 +19,9 @@ limitations under the License.
     android:versionCode="1"
     android:versionName="1.0">
 
-    <uses-feature
-        android:name="android.hardware.fingerprint"
-        android:required="false" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
     <application
-        android:allowBackup="true">
+        android:allowBackup="true"
+        android:label="LAB">
         <activity
             android:name="org.golang.app.GoNativeActivity"
             android:configChanges="orientation|keyboardHidden"
@@ -41,5 +33,14 @@ limitations under the License.
             </intent-filter>
         </activity>
     </application>
+
+    <uses-feature
+        android:name="android.hardware.fingerprint"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 </manifest>
