@@ -26,6 +26,7 @@ import (
 	bcui "github.com/AletheiaWareLLC/bcfynego/ui"
 	bcdata "github.com/AletheiaWareLLC/bcfynego/ui/data"
 	"github.com/AletheiaWareLLC/bcgo"
+	"github.com/AletheiaWareLLC/labclientgo"
 	"github.com/AletheiaWareLLC/labfynego/ui/data"
 	"github.com/AletheiaWareLLC/labfynego/ui/experiment"
 	"github.com/AletheiaWareLLC/labgo"
@@ -33,17 +34,20 @@ import (
 	"os"
 )
 
-type Client struct {
-	bcfynego.Client
+type LabFyneClient struct {
+	bcfynego.BCFyneClient
+	labclientgo.LabClient
 	Experiment *labgo.Experiment
 }
 
-func (c *Client) GetExperiment() *labgo.Experiment {
+func (c *LabFyneClient) GetExperiment() *labgo.Experiment {
 	if c.Experiment == nil {
 		ec := make(chan *labgo.Experiment, 1)
 		go c.ShowExperimentDialog(func(e *labgo.Experiment) {
-			if n, ok := c.Network.(*bcgo.TCPNetwork); ok {
-				go labgo.Serve(c.Node, c.Cache, n)
+			if node := c.GetNode(); node != nil {
+				if net, ok := node.Network.(*bcgo.TCPNetwork); ok {
+					go labgo.Serve(node, node.Cache, net)
+				}
 			}
 			ec <- e
 		})
@@ -53,7 +57,7 @@ func (c *Client) GetExperiment() *labgo.Experiment {
 	return c.Experiment
 }
 
-func (c *Client) GetLogo() fyne.CanvasObject {
+func (c *LabFyneClient) GetLogo() fyne.CanvasObject {
 	return &canvas.Image{
 		Resource: bcdata.NewThemedResource(data.LogoUnmasked),
 		//FillMode: canvas.ImageFillContain,
@@ -61,22 +65,20 @@ func (c *Client) GetLogo() fyne.CanvasObject {
 	}
 }
 
-func (c *Client) ShowExperiment() {
+func (c *LabFyneClient) ShowExperiment(n *bcgo.Node, e *labgo.Experiment) {
 	log.Println("ShowExperiment")
-	e := c.GetExperiment()
-	n := c.GetNode()
 	ui := experiment.NewExperiment(
 		n,
 		&bcgo.PrintingMiningListener{Output: os.Stdout},
-		c.Cache,
-		c.Network,
+		n.Cache,
+		n.Network,
 		e,
 		c.Window)
 	c.Window.SetContent(ui.CanvasObject())
 	c.Window.SetMainMenu(ui.MainMenu())
 }
 
-func (c *Client) ShowExperimentDialog(callback func(*labgo.Experiment)) {
+func (c *LabFyneClient) ShowExperimentDialog(callback func(*labgo.Experiment)) {
 	log.Println("ShowExperimentDialog")
 	create := experiment.NewCreateExperiment(c.Window)
 	join := experiment.NewJoinExperiment()
@@ -110,6 +112,7 @@ func (c *Client) ShowExperimentDialog(callback func(*labgo.Experiment)) {
 				dialog.ShowError(err, c.Window)
 				return
 			}
+			// TODO callback should add experiment.Path to channels
 			callback(experiment)
 		}()
 	}
@@ -119,26 +122,33 @@ func (c *Client) ShowExperimentDialog(callback func(*labgo.Experiment)) {
 		host := join.Host.Text
 		id := join.ID.Text
 		go func() {
-			// Connect to host
-			if host != "" && host != "localhost" {
-				if n, ok := c.Network.(*bcgo.TCPNetwork); ok {
-					n.Connect(host, []byte("test"))
-				}
-			}
 			// Create channel
 			p := labgo.OpenPathChannel(id)
-			// Load channel
-			if err := p.LoadCachedHead(c.Cache); err != nil {
+			cache, err := c.GetCache()
+			if err != nil {
 				log.Println(err)
-			}
-			if c.Network != nil {
-				// Pull channel from network
-				if err := p.Pull(c.Cache, c.Network); err != nil {
+			} else {
+				// Load channel
+				if err := p.LoadCachedHead(cache); err != nil {
 					log.Println(err)
 				}
+				net, err := c.GetNetwork()
+				if err != nil {
+					log.Println(err)
+				} else {
+					// Connect to host
+					if host != "" && host != "localhost" {
+						if n, ok := net.(*bcgo.TCPNetwork); ok {
+							n.Connect(host, []byte("test"))
+						}
+					}
+					// Pull channel from network
+					if err := p.Pull(cache, net); err != nil {
+						log.Println(err)
+					}
+				}
 			}
-			// Add channel to node
-			c.GetNode().AddChannel(p)
+			// TODO callback should add experiment.Path to channels
 			callback(&labgo.Experiment{
 				ID:   id,
 				Path: p,
@@ -149,7 +159,7 @@ func (c *Client) ShowExperimentDialog(callback func(*labgo.Experiment)) {
 }
 
 /*
-func (c *Client) ShowExperimentList(fn func(i int, b binding.Binding)) {
+func (c *LabFyneClient) ShowExperimentList(fn func(i int, b binding.Binding)) {
 		experimentItems := binding.NewStringList()
 		go func() {
 			// TODO read experiments from chain

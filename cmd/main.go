@@ -34,8 +34,8 @@ func main() {
 	w.SetMaster()
 
 	// Create Lab client
-	c := &labfynego.Client{
-		Client: bcfynego.Client{
+	c := &labfynego.LabFyneClient{
+		BCFyneClient: bcfynego.BCFyneClient{
 			App:    a,
 			Window: w,
 		},
@@ -48,7 +48,11 @@ func main() {
 	})
 
 	experimentButton := widget.NewButton("Experiment", func() {
-		go c.ShowExperiment()
+		go func() {
+			e := c.GetExperiment()
+			n := c.GetNode()
+			c.ShowExperiment(n, e)
+		}()
 	})
 
 	w.SetContent(fyne.NewContainerWithLayout(layout.NewBorderLayout(logo, nil, nil, nil), logo, widget.NewAccordionContainer(
