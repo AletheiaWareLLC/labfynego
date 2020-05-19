@@ -94,9 +94,6 @@ func (c *LabFyneClient) ShowExperimentDialog(callback func(*labgo.Experiment)) {
 		log.Println("Create Tapped")
 		uri := create.Path.Text
 		go func() {
-			progress := dialog.NewProgress("Creating", "message", c.Window)
-			defer progress.Hide()
-			listener := &bcui.ProgressMiningListener{Func: progress.SetValue}
 			var reader fyne.FileReadCloser
 			if uri != "" {
 				r, err := storage.OpenFileFromURI(storage.NewURI(uri))
@@ -107,6 +104,9 @@ func (c *LabFyneClient) ShowExperimentDialog(callback func(*labgo.Experiment)) {
 				defer r.Close()
 				reader = r
 			}
+			progress := dialog.NewProgress("Creating", "message", c.Window)
+			defer progress.Hide()
+			listener := &bcui.ProgressMiningListener{Func: progress.SetValue}
 			experiment, err := labgo.CreateFromReader(c.GetNode(), listener, uri, reader)
 			if err != nil {
 				dialog.ShowError(err, c.Window)
